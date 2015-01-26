@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+
+  "name": "SlowTwitch Search Enhancer",
+  "description": "A better searching experience on Slowtwitch",
+  "version": "0.1",
+
+  "permissions": [
+  ],
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["http://forum.slowtwitch.com/*"],
+      "js": ["index.js"],
+      "all_frames": true
+    }
+  ]
+}
