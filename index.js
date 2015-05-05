@@ -22,12 +22,13 @@
   }
 
 
-  var posts, titles, post, posttitle;
+  var posts, titles, post, posttitle, postLen;
   function filterResults() {
     titles = [];
-    posts = document.querySelectorAll('a[href*="gforum.cgi?post="]');
+    posts = document.querySelectorAll('a[href*=";search_string="]');
+    postsLen = posts.length;
 
-    for (var i = 0; i < posts.length; i++) {
+    for (var i = 0; i < postsLen; i++) {
       post = posts[i];
       posttitle = post.innerHTML.split(' [')[0];
 
@@ -47,9 +48,12 @@
 
 
   function init() {
+    filterResults(); // fire filtering on page load, doesn't happen on non search pages
+
     var i, len, searchForms, form;
     for (i = 0, searchForms = document.querySelectorAll('form[action="gforum.cgi"]'), len = searchForms.length; i < len; i++) {
       form = searchForms[i];
+
       if (form.querySelector('input[type="text"]')) {
         form.addEventListener('submit',function(e){
           e.preventDefault();
@@ -65,6 +69,7 @@
 
       newSearchBox.addEventListener('keydown', function(e) {
         if (e.keyCode === 13) {
+          e.preventDefault();
           document.body.style.opacity = 0.25;
           searchUrl = 'http://forum.slowtwitch.com/gforum.cgi?do=search_results&search_forum=forum_2&search_string=' + e.target.value + '&search_type=AND&search_fields=sb&search_time=&search_user_username=&sb=post_time&mh=' + numOfResults;
           getJSON(searchUrl, function(r){
