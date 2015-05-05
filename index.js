@@ -48,7 +48,7 @@
 
 
   function init() {
-    filterResults(); // fire filtering on page load, doesn't happen on non search pages
+    filterResults();
 
     var i, len, searchForms, form;
     for (i = 0, searchForms = document.querySelectorAll('form[action="gforum.cgi"]'), len = searchForms.length; i < len; i++) {
@@ -69,6 +69,7 @@
 
       newSearchBox.addEventListener('keydown', function(e) {
         if (e.keyCode === 13) {
+          e.target.blur();
           e.preventDefault();
           document.body.style.opacity = 0.25;
           searchUrl = 'http://forum.slowtwitch.com/gforum.cgi?do=search_results&search_forum=forum_2&search_string=' + e.target.value + '&search_type=AND&search_fields=sb&search_time=&search_user_username=&sb=post_time&mh=' + numOfResults;
@@ -78,7 +79,7 @@
             history.pushState({},'st search', searchUrl);
 
             setTimeout(function(){
-              filterResults();
+              init();
             },200);
 
           });
