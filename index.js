@@ -48,7 +48,8 @@
   }
 
   function init() {
-    filterResults();
+    if (window.location.href.indexOf('do=search_results'))
+      filterResults();
 
     // manual redirect to page if forward/back buttons are hit
     window.addEventListener('popstate', function(e) {
