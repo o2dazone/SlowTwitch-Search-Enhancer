@@ -48,7 +48,7 @@
   }
 
   function init() {
-    if (window.location.href.indexOf('do=search_results'))
+    if ((window.location.href.indexOf('do=search_results') + 1))
       filterResults();
 
     // manual redirect to page if forward/back buttons are hit
