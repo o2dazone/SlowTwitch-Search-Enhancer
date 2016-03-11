@@ -1,6 +1,7 @@
 (function(d, w){
 
-  var numOfResults = 200;
+  // gets total number of results, before filter
+  var numOfResults = 500;
 
   function getJSON(url, callback, opts){
     var ajax = new XMLHttpRequest();
@@ -21,62 +22,56 @@
     document.close();
   }
 
+  function clickLink(post) {
+    post.addEventListener('click', function(e){
+      e.target.parentNode.parentNode.parentNode.style.opacity = 0.25;
+    });
+  }
 
-  var posts, titles, post, posttitle, postLen;
+  var posts, titles, post, posttitle;
   function filterResults() {
     titles = [];
-    posts = document.querySelectorAll('a[href*=";search_string="]');
-    postsLen = posts.length;
+    posts = document.querySelectorAll('.dcell.subject > a');
 
-    for (var i = 0; i < postsLen; i++) {
+    for (var i = 0; i < posts.length; i++) {
       post = posts[i];
       posttitle = post.innerHTML.split(' [')[0];
 
-      post.addEventListener('click', function(e){
-        e.preventDefault();
-        window.open(e.target.href);
-        e.target.parentNode.parentNode.parentNode.style.opacity = 0.25;
-      })
+      clickLink(post);
 
-      if (titles.indexOf(posttitle) !== -1 || posttitle.match('Re: ')) {
-        post.parentNode.parentNode.parentNode.style.display = 'none';
+      if ((titles.indexOf(posttitle) !== -1) || !post.innerHTML.indexOf('Re: ')) {
+        post.parentNode.parentNode.style.display = 'none';
       } else {
         titles.push(posttitle);
       }
     }
   }
 
-
   function init() {
     filterResults();
 
-    var i, len, searchForms, form;
-    for (i = 0, searchForms = document.querySelectorAll('form[action="gforum.cgi"]'), len = searchForms.length; i < len; i++) {
-      form = searchForms[i];
-
-      if (form.querySelector('input[type="text"]')) {
-        form.addEventListener('submit',function(e){
-          e.preventDefault();
-        });
-      }
-    }
+    // manual redirect to page if forward/back buttons are hit
+    window.addEventListener('popstate', function(e) {
+      window.location.href = e.target.window.location.href;
+    });
 
     var searchUrl, searchBox, newSearchBox;
-    if ((searchBox = document.querySelector('#searchbox') || document.querySelector('#query'))) {
+    if ((searchBox = document.querySelector('.searchbox input[type="text"]'))) {
 
       newSearchBox = searchBox.cloneNode(1);
       newSearchBox.placeholder = 'Enhanced Search';
+      searchBox.parentNode.replaceChild(newSearchBox, searchBox);
 
       newSearchBox.addEventListener('keydown', function(e) {
         if (e.keyCode === 13) {
           e.target.blur();
           e.preventDefault();
-          document.body.style.opacity = 0.25;
-          searchUrl = 'http://forum.slowtwitch.com/gforum.cgi?do=search_results&search_forum=forum_2&search_string=' + e.target.value + '&search_type=AND&search_fields=sb&search_time=&search_user_username=&sb=post_time&mh=' + numOfResults;
+          document.body.style.webkitFilter = 'blur(3px)';
+          searchUrl = 'http://forum.slowtwitch.com/forum/?do=search_results&search_forum=forum_2&search_string=' + e.target.value + '&search_type=AND&search_fields=sb&search_time=&search_user_username=&group=yes&sb=post_time&mh=' + numOfResults;
           getJSON(searchUrl, function(r){
-            renderNewPage(r)
+            renderNewPage(r);
 
-            history.pushState({},'st search', searchUrl);
+            history.pushState(null,null, searchUrl);
 
             setTimeout(function(){
               init();
@@ -85,8 +80,6 @@
           });
         }
       });
-
-      searchBox.parentNode.replaceChild(newSearchBox, searchBox);
     }
   }
 
