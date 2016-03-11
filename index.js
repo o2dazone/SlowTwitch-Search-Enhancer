@@ -24,7 +24,7 @@
 
   function clickLink(post) {
     post.addEventListener('click', function(e){
-      e.target.parentNode.parentNode.parentNode.style.opacity = 0.25;
+      e.target.parentNode.parentNode.style.opacity = 0.25;
     });
   }
 
