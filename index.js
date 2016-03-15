@@ -1,90 +1,101 @@
-(function(d, w){
+var STSE = {
+  numOfResults: 500
+};
 
-  // gets total number of results, before filter
-  var numOfResults = 500;
+function getJSON(url, callback, opts){
+  var ajax = new XMLHttpRequest();
+  ajax.onreadystatechange = function(){
+    if(ajax.readyState === 4 && ajax.status === 200){
+      var r = ajax.response;
+      callback(r, opts);
+    }
+  };
 
-  function getJSON(url, callback, opts){
-    var ajax = new XMLHttpRequest();
-    ajax.onreadystatechange = function(){
-      if(ajax.readyState === 4 && ajax.status === 200){
-        var r = ajax.response;
-        callback(r, opts);
-      }
-    };
+  ajax.open('GET', url, !0);
+  ajax.send();
+}
 
-    ajax.open('GET', url, !0);
-    ajax.send();
-  }
+STSE.renderNewPage = function(markup) {
+  this.d.open();
+  this.d.write(markup);
+  this.d.close();
+}
 
-  function renderNewPage(markup) {
-    document.open();
-    document.write(markup);
-    document.close();
-  }
+STSE.bindClicks = function() {
+  var target,
+      self = this;
 
-  function clickLink(post) {
-    post.addEventListener('click', function(e){
-      e.target.parentNode.parentNode.style.opacity = 0.25;
-    });
-  }
+  self.d.querySelector('.content .dbody').addEventListener('click', function(e){
+    target = e.target;
 
-  var posts, titles, post, posttitle;
-  function filterResults() {
-    titles = [];
-    posts = document.querySelectorAll('.dcell.subject > a');
+    if (target.href && (target.href.indexOf('search_string')+1)) {
+      target.parentNode.parentNode.style.opacity = 0.25;
+    }
+  });
+}
 
-    for (var i = 0; i < posts.length; i++) {
-      post = posts[i];
-      posttitle = post.innerHTML.split(' [')[0];
+STSE.filterResults = function() {
+  var posts, titles, post, posttitle,
+      self = this;
 
-      clickLink(post);
+  titles = [];
+  posts = self.d.querySelectorAll('.dcell.subject > a');
 
-      if ((titles.indexOf(posttitle) !== -1) || !post.innerHTML.indexOf('Re: ')) {
-        post.parentNode.parentNode.style.display = 'none';
-      } else {
-        titles.push(posttitle);
-      }
+  for (var i = 0; i < posts.length; i++) {
+    post = posts[i];
+    posttitle = post.innerHTML.split(' [')[0];
+
+    if (titles.indexOf(posttitle)+1 || post.innerHTML.indexOf('Re: ')+1) {
+      post.parentNode.parentNode.style.display = 'none';
+    } else {
+      titles.push(posttitle);
     }
   }
+}
 
-  function init() {
-    if ((window.location.href.indexOf('do=search_results') + 1))
-      filterResults();
+STSE.init = function(doc, win) {
 
-    // manual redirect to page if forward/back buttons are hit
-    window.addEventListener('popstate', function(e) {
-      window.location.href = e.target.window.location.href;
-    });
+  var self = this;
 
-    var searchUrl, searchBox, newSearchBox;
-    if ((searchBox = document.querySelector('.searchbox input[type="text"]'))) {
+  self.d = doc;
+  self.w = win;
 
-      newSearchBox = searchBox.cloneNode(1);
-      newSearchBox.placeholder = 'Enhanced Search';
-      searchBox.parentNode.replaceChild(newSearchBox, searchBox);
-
-      newSearchBox.addEventListener('keydown', function(e) {
-        if (e.keyCode === 13) {
-          e.target.blur();
-          e.preventDefault();
-          document.body.style.webkitFilter = 'blur(3px)';
-          searchUrl = 'http://forum.slowtwitch.com/forum/?do=search_results&search_forum=forum_2&search_string=' + e.target.value + '&search_type=AND&search_fields=sb&search_time=&search_user_username=&group=yes&sb=post_time&mh=' + numOfResults;
-          getJSON(searchUrl, function(r){
-            renderNewPage(r);
-
-            history.pushState(null,null, searchUrl);
-
-            setTimeout(function(){
-              init();
-            },200);
-
-          });
-        }
-      });
-    }
+  if ((self.w.location.href.indexOf('do=search_results') + 1)) {
+    self.filterResults();
+    self.bindClicks();
   }
 
+  // manual redirect to page if forward/back buttons are hit
+  self.w.addEventListener('popstate', function(e) {
+    self.w.location.href = e.target.window.location.href;
+  });
 
-  init();
+  var searchUrl, searchBox, newSearchBox;
+  if ((searchBox = self.d.querySelector('.searchbox input[type="text"]'))) {
 
-}(document,window));
+    newSearchBox = searchBox.cloneNode(1);
+    newSearchBox.placeholder = 'Enhanced Search';
+    searchBox.parentNode.replaceChild(newSearchBox, searchBox);
+
+    newSearchBox.addEventListener('keydown', function(e) {
+      if (e.keyCode === 13) {
+        e.target.blur();
+        e.preventDefault();
+        self.d.body.style.webkitFilter = 'blur(3px)';
+        searchUrl = 'http://forum.slowtwitch.com/forum/?do=search_results&search_forum=forum_2&search_string=' + e.target.value + '&search_type=AND&search_fields=sb&search_time=&search_user_username=&group=yes&sb=post_time&mh=' + self.numOfResults;
+        getJSON(searchUrl, function(r){
+          self.renderNewPage(r);
+
+          history.pushState(null,null, searchUrl);
+
+          setTimeout(function(){
+            self.init(document, window);
+          },200);
+
+        });
+      }
+    });
+  }
+}
+
+STSE.init(document, window);
